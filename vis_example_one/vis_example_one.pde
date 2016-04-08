@@ -8,59 +8,62 @@ import javax.sound.midi.MidiMessage;
 
 MidiBus myBus; 
 
-int currentColor = 0;
+int backColor = 0;
 int midiDevice  = 0;
 ArrayList<int[]> playing;
 ArrayList<int[]> allMidi;
 int start;
 
 void setup() {
-  size(480, 320);
+  size(960, 640);
   MidiBus.list();
   start = millis();
-  myBus = new MidiBus(this, midiDevice, 4);
+  myBus = new MidiBus(this, midiDevice, 1);
   playing = new ArrayList<int[]>();
   allMidi = new ArrayList<int[]>();
-  colorMode(HSB);
+  colorMode(HSB, 360, 100, 100, 100);
   rectMode(CENTER);
 }
 
 void draw() {
-  background(currentColor);
+  background(backColor);
+  
+  for(int i =0; i<allMidi.size(); i++){
+    
+    int[] cur = allMidi.get(i);
+    fill(color(cur[4], cur[5], cur[6], cur[7]));
+    float a = cur[3] * .002;
+    int x = floor(width/2 + ((10*(cur[1] + 1)+50) * cos(radians(a))));
+    int y = floor(height/2 + ((10*(cur[1] + 1)+50) * sin(radians(a))));
+    int duration = floor(sqrt((cur[8])/25));
+    pushMatrix();
+    translate(x, y);
+    rotate(radians(a));
+    rect(0, 0, 10+(duration), 10+(duration));
+    popMatrix();
+  }
   
   for(int i =0; i<playing.size(); i++){
     
-    int[] current = playing.get(i);
+    int[] cur = playing.get(i);
     // chance color based on octave
-    fill(color((current[0]-2)*100, 255, 255));
+    fill(color(cur[4], cur[5], cur[6], cur[7]));
     //used for size calculation
-    int duration = (millis() - current[3])/100;
+    int duration = floor(sqrt((millis() - cur[3])/25));
     // calculate angle around circle
-    float a = current[3] * .002;
-    int x = floor(240 + ((10*(current[1] + 1)+50) * cos(radians(a))));
-    int y = floor(160 + ((10*(current[1] + 1)+50) * sin(radians(a))));
+    float a = cur[3] * .002;
+    int x = floor(width/2 + ((10*(cur[1] + 1)+50) * cos(radians(a))));
+    int y = floor(height/2 + ((10*(cur[1] + 1)+50) * sin(radians(a))));
     // transformations done to accurately rotate squares
     pushMatrix();
     translate(x, y);
     rotate(radians(a));
-    rect(0, 0, 5+duration, 5+duration);
+    rect(0, 0, 10+duration, 10+duration);
     //return to normal grid
     popMatrix();
   }
   
-  for(int i =0; i<allMidi.size(); i++){
-    
-    int[] current = allMidi.get(i);
-    fill(color((current[0]-2)*100, 255, 255));
-    float a = current[3] * .002;
-    int x = floor(240 + ((10*(current[1] + 1)+50) * cos(radians(a))));
-    int y = floor(160 + ((10*(current[1] + 1)+50) * sin(radians(a))));
-    pushMatrix();
-    translate(x, y);
-    rotate(radians(a));
-    rect(0, 0, 5+(current[4]/100), 5+(current[4]/100));
-    popMatrix();
-  }
+  
 }
 
 // TheMididBus method, triggers when noteOn recieved
@@ -69,10 +72,33 @@ void noteOn(int channel, int noteNum, int vel) {
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
   int tplayed = millis();
-  println("Note num "+ noteNum + "; Note " + note + ", vel " + vel);
+  println("Note num "+ noteNum + "; Octave " + octave + ", channel " + channel);
+  int hue = 0;
+  int saturation = 0;
+  int brightness = 0;
+  int alpha = 100;
+  if(octave==0 && channel==0) {
+   hue = 160;
+   saturation = 100;
+   brightness = 100;
+  } else if(octave==3 && channel==0) {
+    hue = 40;
+    saturation = 91;
+    brightness = 99;
+  } else if(octave==4 && channel==0) {
+    hue = 190;
+    saturation = 100;
+    brightness = 83;
+  } else if(octave==5 && channel==0) {
+    hue = 307;
+    saturation = 76;
+    brightness = 61;
+  }
   
-   int[] temp = {octave, note, channel, tplayed};
-   playing.add(temp);
+  int[] temp = {octave, note, channel, tplayed, hue, saturation, brightness, alpha};
+  playing.add(temp);
+  // myBus.sendNoteOn(channel, noteNum, vel);
+  // sending the note to output device
   }
 
 // TheMididBus method, triggers when noteOn recieved
@@ -83,20 +109,23 @@ void noteOff(int channel, int noteNum, int vel){
   
   int[] temp = {octave, note, channel};
   for(int i=0; i<playing.size(); i++){
-    int[] current = playing.get(i);
-    if(temp[0] == current[0] && temp[1] == current[1] && temp[2] == current[2]){
-      int dur = millis() - current[3];
-      int[] finished = append(current, dur);
+    int[] cur = playing.get(i);
+    if(temp[0] == cur[0] && temp[1] == cur[1] && temp[2] == cur[2]){
+      int dur = millis() - cur[3];
+      int[] finished = append(cur, dur);
       allMidi.add(finished);
       playing.remove(i);
     }
   }
 }
-// placeholder to print allMidi
+// placeholder to print allMidi instead of sending it
+// make sure I have it
 void mouseClicked(){
   for(int i=0; i<allMidi.size(); i++){
     print(i + "\n");
     printArray(allMidi.get(i));
+    // temporary save for testing stuffs?
+    save("diagonal.tif");
   }
   //print(allMidi);
 }
