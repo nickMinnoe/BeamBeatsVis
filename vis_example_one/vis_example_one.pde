@@ -1,12 +1,20 @@
-// SimpleMidi.pde
-
-// Add in duration tracking
-// Octave and note distinction
-
+// needed for handling midi datas
 import themidibus.*; //Import the library
 import javax.sound.midi.MidiMessage; 
 
+// used for sending data to server
+import java.net.URI;
+import java.net.URISyntaxException;
+// only needed for the java stuff I think?
+import org.java_websocket.drafts.Draft_10;
+
+import org.java_websocket.WebSocketImpl;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
 MidiBus myBus; 
+private WebSocketClient cc;
+String defaultLoc = "ws://localhost:8887";
 
 int backColor = 0;
 int midiDevice  = 0;
@@ -23,6 +31,9 @@ void setup() {
   allMidi = new ArrayList<int[]>();
   colorMode(HSB, 360, 100, 100, 100);
   rectMode(CENTER);
+  noStroke();
+  setupCC();
+  cc.connect();
 }
 
 void draw() {
@@ -76,20 +87,20 @@ void noteOn(int channel, int noteNum, int vel) {
   int hue = 0;
   int saturation = 0;
   int brightness = 0;
-  int alpha = 100;
-  if(octave==0 && channel==0) {
+  int alpha = 100 - note*7;
+  if(octave==2) {
    hue = 160;
    saturation = 100;
    brightness = 100;
-  } else if(octave==3 && channel==0) {
+  } else if(octave==3) {
     hue = 40;
     saturation = 91;
     brightness = 99;
-  } else if(octave==4 && channel==0) {
+  } else if(octave==4) {
     hue = 190;
     saturation = 100;
     brightness = 83;
-  } else if(octave==5 && channel==0) {
+  } else if(octave==5) {
     hue = 307;
     saturation = 76;
     brightness = 61;
@@ -119,13 +130,50 @@ void noteOff(int channel, int noteNum, int vel){
   }
 }
 // placeholder to print allMidi instead of sending it
+
+void setupCC(){
+ try{ 
+   cc = new WebSocketClient( new URI( defaultLoc ), new Draft_10() ) {
+
+          @Override
+          public void onMessage( String message ) {
+            println( "got: " + message + "\n" );
+          }
+
+          @Override
+          public void onOpen( ServerHandshake handshake ) {
+            println( "You are connected to ChatServer: " + getURI() + "\n" );
+          }
+
+          @Override
+          public void onClose( int code, String reason, boolean remote ) {
+            println( "You have been disconnected from: " + getURI() + "; Code: " + code + " " + reason + "\n" );
+          }
+
+          @Override
+          public void onError( Exception ex ) {
+            println( "Exception occured ...\n" + ex + "\n" );
+            ex.printStackTrace();
+          }
+        }; 
+ } catch( URISyntaxException ex){
+  println( defaultLoc+" is not a valid Web Adress");
+ }
+}
+
 // make sure I have it
 void mouseClicked(){
-  for(int i=0; i<allMidi.size(); i++){
-    print(i + "\n");
-    printArray(allMidi.get(i));
-    // temporary save for testing stuffs?
-    save("diagonal.tif");
-  }
-  //print(allMidi);
+  // temporary save for testing stuffs?
+  save("diagonal.tif");
+  JSONArray parentJsonArray = new JSONArray();
+    // loop through your elements
+    for (int i=0; i<allMidi.size(); i++){
+        JSONArray childJsonArray = new JSONArray();
+        for (int j =0; j<allMidi.get(0).length; j++){
+            childJsonArray.append(allMidi.get(i)[j]);
+        }
+        parentJsonArray.append(childJsonArray);
+    }
+    cc.send(parentJsonArray.toString());
+  print(parentJsonArray.toString());
 }
