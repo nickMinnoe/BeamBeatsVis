@@ -12,6 +12,9 @@ import org.java_websocket.WebSocketImpl;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+// convert to base64?
+import javax.xml.bind.DatatypeConverter;
+
 MidiBus myBus; 
 private WebSocketClient cc;
 String defaultLoc = "ws://localhost:8887";
@@ -42,15 +45,18 @@ void draw() {
   for(int i =0; i<allMidi.size(); i++){
     
     int[] cur = allMidi.get(i);
-    fill(color(cur[4], cur[5], cur[6], cur[7]));
-    float a = cur[3] * .002;
-    int x = floor(width/2 + ((10*(cur[1] + 1)+50) * cos(radians(a))));
-    int y = floor(height/2 + ((10*(cur[1] + 1)+50) * sin(radians(a))));
+    float a = cur[3] * .012;
+    int x = floor(width/2 + ((20*(cur[1] + 1)+50) * cos(radians(a))));
+    int y = floor(height/2 + ((20*(cur[1] + 1)+50) * sin(radians(a))));
     int duration = floor(sqrt((cur[8])/25));
     pushMatrix();
     translate(x, y);
     rotate(radians(a));
+    fill(color(cur[4], cur[5], cur[6], cur[7]));
     rect(0, 0, 10+(duration), 10+(duration));
+    fill(color(cur[4], cur[5], cur[6], cur[7]*.5));
+    rect(-15, 0, 5+(duration), 5+(duration));
+    rect(15, 0, 5+(duration), 5+(duration));
     popMatrix();
   }
   
@@ -62,15 +68,16 @@ void draw() {
     //used for size calculation
     int duration = floor(sqrt((millis() - cur[3])/25));
     // calculate angle around circle
-    float a = cur[3] * .002;
+    float a = cur[3] * .012;
     int x = floor(width/2 + ((10*(cur[1] + 1)+50) * cos(radians(a))));
     int y = floor(height/2 + ((10*(cur[1] + 1)+50) * sin(radians(a))));
     // transformations done to accurately rotate squares
     pushMatrix();
     translate(x, y);
     rotate(radians(a));
-    rect(0, 0, 10+duration, 10+duration);
-    //return to normal grid
+    rect(-15, 0, 5+(duration), 5+(duration));
+    rect(0, 0, 10+(duration), 10+(duration));
+    rect(15, 0, 5+(duration), 5+(duration));
     popMatrix();
   }
   
@@ -164,16 +171,14 @@ void setupCC(){
 // make sure I have it
 void mouseClicked(){
   // temporary save for testing stuffs?
-  save("diagonal.tif");
-  JSONArray parentJsonArray = new JSONArray();
-    // loop through your elements
-    for (int i=0; i<allMidi.size(); i++){
-        JSONArray childJsonArray = new JSONArray();
-        for (int j =0; j<allMidi.get(0).length; j++){
-            childJsonArray.append(allMidi.get(i)[j]);
-        }
-        parentJsonArray.append(childJsonArray);
-    }
-    cc.send(parentJsonArray.toString());
-  print(parentJsonArray.toString());
+  String file_name = "circle.png";
+  save(file_name);
+  delay(1000);
+ 
+  byte[] imageBytes = loadBytes(file_name);
+  String thisIsBase = DatatypeConverter.printBase64Binary(imageBytes);
+  print("THis is working");
+  
+  cc.send(thisIsBase);
+
 }
