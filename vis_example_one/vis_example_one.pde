@@ -2,6 +2,8 @@
 import themidibus.*; //Import the library
 import javax.sound.midi.MidiMessage; 
 
+// DELETE THIS SHIT (and the file in code) put this in instead ServToClient
+// import processing.net.*;
 // used for sending data to server
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,16 +12,19 @@ import org.java_websocket.drafts.Draft_10;
 import org.java_websocket.WebSocketImpl;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+
 // convert to base64?
 import javax.xml.bind.DatatypeConverter;
 
 MidiBus myBus; 
+
+// changed to:  Client cc
 private WebSocketClient cc;
 // uri to connect to
 String defaultLoc = "ws://localhost:8887";
 
 int backColor = 0;
-int midiDevice  = 0;
+int midiDevice  = 8;
 int fCounter;
 
 // lists of stuff
@@ -64,9 +69,13 @@ void setup() {
   colorMode(HSB, 360, 100, 100, 100);
   rectMode(CENTER);
   noStroke();
+  // DELETE THIS SHIT
+  // will be switched for this: cc = new Client(this, "hostname", "port");
   setupCC();
   cc.connect();
+  // end shit to delete
   tempG = createGraphics(width, height, JAVA2D);
+  tempG.noStroke();
   fCounter = 0;
 }
 
@@ -138,7 +147,7 @@ void draw() {
     regDraw(bluMidi);
     if (saveB) {
       saveB = false;
-      saveNSend("gre");
+      saveNSend("blu");
     }
   } else if (millis() - start >= playLength) {
     // save all midi 
@@ -276,25 +285,25 @@ void noteOn(int channel, int noteNum, int vel) {
   int saturation = 0;
   int brightness = 0;
   int alpha = 100 - note*7;
-  if (octave==2) {
+  if (channel==1) {
     hue = 352;
     saturation = 83;
     brightness = 92;
-  } else if (octave==3) {
+  } else if (channel==2) {
     hue = 190;
     saturation = 100;
     brightness = 83;
-  } else if (octave==4) {
+  } else if (channel==3) {
     hue = 40;
     saturation = 91;
     brightness = 98;
-  } else if (octave==5) {
+  } else if (channel==4) {
     hue = 307;
     saturation = 76;
     brightness = 60;
   }
 
-  int[] temp = {octave, note, channel, vel, tplayed, hue, saturation, brightness, alpha};
+  int[] temp = {channel, note, octave, vel, tplayed, hue, saturation, brightness, alpha};
   playing.add(temp);
 }
 }
@@ -305,7 +314,7 @@ void noteOff(int channel, int noteNum, int vel) {
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
   
-  int[] temp = {octave, note, channel};
+  int[] temp = {channel, note, octave};
   for (int i=0; i<playing.size(); i++) {
     int[] cur = playing.get(i);
     if (temp[0] == cur[0] && temp[1] == cur[1] && temp[2] == cur[2]) {
@@ -326,15 +335,15 @@ void noteOff(int channel, int noteNum, int vel) {
     }
   }
 }
-// placeholder to print allMidi instead of sending it
 
+// DELETE THIS SHIT replace with nothing
 void setupCC() {
   try { 
     cc = new WebSocketClient( new URI( defaultLoc ), new Draft_10() ) {
 
       @Override
         public void onMessage( String message ) {
-        println( "got: " + message + "\n" );
+        println( "got: stuff" );
       }
 
       @Override
@@ -362,13 +371,14 @@ void setupCC() {
 // replacing mouseClicked
 void saveNSend(String imgName) {
   //change this line to save from a passed in object
-  print("Got up in her");
   tempG.save(imgName+".png");
   delay(1000);
 
   byte[] imageBytes = loadBytes(imgName+".png");
   String thisIsBase = DatatypeConverter.printBase64Binary(imageBytes);
 
+  // DELETE THIS SHIT
+  // replace with: cc.write(thisIsBase);
   cc.send(thisIsBase);
 }
 
