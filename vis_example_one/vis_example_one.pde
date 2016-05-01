@@ -24,7 +24,7 @@ private WebSocketClient cc;
 String defaultLoc = "ws://localhost:8887";
 
 int backColor = 0;
-int midiDevice  = 8;
+int midiDevice  = 0;
 int fCounter;
 
 // lists of stuff
@@ -285,6 +285,7 @@ void noteOn(int channel, int noteNum, int vel) {
   int saturation = 0;
   int brightness = 0;
   int alpha = 100 - note*7;
+  // CHANNEL CHANGE switch comparisons
   if (channel==1) {
     hue = 352;
     saturation = 83;
@@ -302,7 +303,7 @@ void noteOn(int channel, int noteNum, int vel) {
     saturation = 76;
     brightness = 60;
   }
-
+  // CHANNEL CHANGE - switch octave/channel in array
   int[] temp = {channel, note, octave, vel, tplayed, hue, saturation, brightness, alpha};
   playing.add(temp);
 }
@@ -313,7 +314,7 @@ void noteOn(int channel, int noteNum, int vel) {
 void noteOff(int channel, int noteNum, int vel) {
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
-  
+  //CHANNEL CHANGE - switch octave/channel in array
   int[] temp = {channel, note, octave};
   for (int i=0; i<playing.size(); i++) {
     int[] cur = playing.get(i);
@@ -379,7 +380,9 @@ void saveNSend(String imgName) {
 
   // DELETE THIS SHIT
   // replace with: cc.write(thisIsBase);
-  cc.send(thisIsBase);
+  
+  // commenting out for testing
+  //cc.send(thisIsBase);
 }
 
 void regDraw(ArrayList<int[]> looper){
