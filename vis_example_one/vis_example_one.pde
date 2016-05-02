@@ -2,26 +2,15 @@
 import themidibus.*; //Import the library
 import javax.sound.midi.MidiMessage; 
 
-// DELETE THIS SHIT (and the file in code) put this in instead ServToClient
-// import processing.net.*;
-// used for sending data to server
-import java.net.URI;
-import java.net.URISyntaxException;
-// only needed for the java stuff I think?
-import org.java_websocket.drafts.Draft_10;
-import org.java_websocket.WebSocketImpl;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
 
+import http.requests.*;
 // convert to base64?
 import javax.xml.bind.DatatypeConverter;
 
 MidiBus myBus; 
 
-// changed to:  Client cc
-private WebSocketClient cc;
 // uri to connect to
-String defaultLoc = "ws://localhost:8887";
+String defaultLoc = "http://localhost:8887";
 
 int backColor = 0;
 int midiDevice  = 8;
@@ -69,11 +58,6 @@ void setup() {
   colorMode(HSB, 360, 100, 100, 100);
   rectMode(CENTER);
   noStroke();
-  // DELETE THIS SHIT
-  // will be switched for this: cc = new Client(this, "hostname", "port");
-  setupCC();
-  cc.connect();
-  // end shit to delete
   tempG = createGraphics(width, height, JAVA2D);
   tempG.noStroke();
   fCounter = 0;
@@ -336,50 +320,20 @@ void noteOff(int channel, int noteNum, int vel) {
   }
 }
 
-// DELETE THIS SHIT replace with nothing
-void setupCC() {
-  try { 
-    cc = new WebSocketClient( new URI( defaultLoc ), new Draft_10() ) {
-
-      @Override
-        public void onMessage( String message ) {
-        println( "got: stuff" );
-      }
-
-      @Override
-        public void onOpen( ServerHandshake handshake ) {
-        println( "You are connected to ChatServer: " + getURI() + "\n" );
-      }
-
-      @Override
-        public void onClose( int code, String reason, boolean remote ) {
-        println( "You have been disconnected from: " + getURI() + "; Code: " + code + " " + reason + "\n" );
-      }
-
-      @Override
-        public void onError( Exception ex ) {
-        println( "Exception occured ...\n" + ex + "\n" );
-        ex.printStackTrace();
-      }
-    };
-  } 
-  catch( URISyntaxException ex) {
-    println( defaultLoc+" is not a valid Web Adress");
-  }
-}
-
 // replacing mouseClicked
 void saveNSend(String imgName) {
   //change this line to save from a passed in object
+  print("In here");
   tempG.save(imgName+".png");
   delay(1000);
 
   byte[] imageBytes = loadBytes(imgName+".png");
   String thisIsBase = DatatypeConverter.printBase64Binary(imageBytes);
 
-  // DELETE THIS SHIT
-  // replace with: cc.write(thisIsBase);
-  cc.send(thisIsBase);
+
+  PostRequest post = new PostRequest(defaultLoc);
+  post.addData("uri", thisIsBase);
+  post.send();
 }
 
 void regDraw(ArrayList<int[]> looper){
