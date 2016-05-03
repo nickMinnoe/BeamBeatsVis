@@ -286,7 +286,11 @@ void noteOn(int channel, int noteNum, int vel) {
   int brightness = 0;
   int alpha = 100 - note*7;
   // CHANNEL CHANGE switch comparisons
-  if (channel==1) {
+  if (channel==0) {
+    hue = 307;
+    saturation = 76;
+    brightness = 60;
+  } else if (channel==1) {
     hue = 352;
     saturation = 83;
     brightness = 92;
@@ -298,10 +302,6 @@ void noteOn(int channel, int noteNum, int vel) {
     hue = 40;
     saturation = 91;
     brightness = 98;
-  } else if (channel==4) {
-    hue = 307;
-    saturation = 76;
-    brightness = 60;
   }
   // CHANNEL CHANGE - switch octave/channel in array
   int[] temp = {channel, note, octave, vel, tplayed, hue, saturation, brightness, alpha};
