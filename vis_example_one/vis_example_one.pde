@@ -10,10 +10,10 @@ import javax.xml.bind.DatatypeConverter;
 MidiBus myBus; 
 
 // uri to connect to
-String defaultLoc = "http://localhost:8887";
+String defaultLoc = "http://requestb.in/1f71cln1";
 
 int backColor = 0;
-int midiDevice  = 8;
+int midiDevice  = 0;
 int fCounter;
 
 // lists of stuff
@@ -35,8 +35,8 @@ int velPivot = 85;
 
 // all for timing and saving/sending data to server
 int start;
-int playLength = 60000;
-int interval = 2500;
+int playLength = 30000;
+int interval = 1200;
 boolean saveA = true;
 boolean saveR = true;
 boolean saveY = true;
@@ -94,7 +94,7 @@ void draw() {
   String fileNameP = sketchPath("pur.png");
   File fileP = sketchFile(fileNameP);
   System.gc(); // the key to succes
-  file.delete();
+  //file.delete();
   fileR.delete();
   fileB.delete();
   fileY.delete();
@@ -115,7 +115,7 @@ void draw() {
     regDraw(redMidi);
     if (saveR) {
       saveR = false;
-      saveNSend("red");
+      saveToFile("red");
     }
   } else if (millis() - start >= playLength+(interval*2)) {
     // save yellow 
@@ -123,7 +123,7 @@ void draw() {
     regDraw(yelMidi);
     if (saveY) {
       saveY = false;
-      saveNSend("yel");
+      saveToFile("yel");
     }
   } else if (millis() - start >= playLength+interval) {
     // save blue 
@@ -131,7 +131,7 @@ void draw() {
     regDraw(bluMidi);
     if (saveB) {
       saveB = false;
-      saveNSend("blu");
+      saveToFile("blu");
     }
   } else if (millis() - start >= playLength) {
     // save all midi 
@@ -139,7 +139,7 @@ void draw() {
     regDraw(allMidi);
     if (saveA) {
       saveA = false;
-      saveNSend("all");
+      saveToFile("all");
     }
   } else {
     // normal playing
@@ -269,25 +269,25 @@ void noteOn(int channel, int noteNum, int vel) {
   int saturation = 0;
   int brightness = 0;
   int alpha = 100 - note*7;
-  if (channel==1) {
+  if (octave==1) {
     hue = 352;
     saturation = 83;
     brightness = 92;
-  } else if (channel==2) {
+  } else if (octave==2) {
     hue = 190;
     saturation = 100;
     brightness = 83;
-  } else if (channel==3) {
+  } else if (octave==3) {
     hue = 40;
     saturation = 91;
     brightness = 98;
-  } else if (channel==4) {
+  } else if (octave==4) {
     hue = 307;
     saturation = 76;
     brightness = 60;
   }
 
-  int[] temp = {channel, note, octave, vel, tplayed, hue, saturation, brightness, alpha};
+  int[] temp = {octave, note, channel, vel, tplayed, hue, saturation, brightness, alpha};
   playing.add(temp);
 }
 }
@@ -298,7 +298,7 @@ void noteOff(int channel, int noteNum, int vel) {
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
   
-  int[] temp = {channel, note, octave};
+  int[] temp = {octave, note, channel};
   for (int i=0; i<playing.size(); i++) {
     int[] cur = playing.get(i);
     if (temp[0] == cur[0] && temp[1] == cur[1] && temp[2] == cur[2]) {
@@ -319,6 +319,10 @@ void noteOff(int channel, int noteNum, int vel) {
     }
   }
 }
+void saveToFile(String imgName){
+  tempG.save(imgName+".png");
+  
+}
 
 // replacing mouseClicked
 void saveNSend(String imgName) {
@@ -327,19 +331,31 @@ void saveNSend(String imgName) {
   tempG.save(imgName+".png");
   delay(1000);
 
-  byte[] imageBytes = loadBytes(imgName+".png");
-  String thisIsBase = DatatypeConverter.printBase64Binary(imageBytes);
-
-
+  byte[] imageBytesP = loadBytes("pur.png");
+  String thisIsBaseP = DatatypeConverter.printBase64Binary(imageBytesP);
+  byte[] imageBytesR = loadBytes("red.png");
+  String thisIsBaseR = DatatypeConverter.printBase64Binary(imageBytesR);
+  byte[] imageBytesB = loadBytes("blu.png");
+  String thisIsBaseB = DatatypeConverter.printBase64Binary(imageBytesB);
+  byte[] imageBytesY = loadBytes("yel.png");
+  String thisIsBaseY = DatatypeConverter.printBase64Binary(imageBytesY);
+  byte[] imageBytesA = loadBytes("all.png");
+  String thisIsBaseA = DatatypeConverter.printBase64Binary(imageBytesA);
+  
+  
   PostRequest post = new PostRequest(defaultLoc);
-  post.addData("uri", thisIsBase);
+  post.addData("all", thisIsBaseA);
+  post.addData("pur", thisIsBaseP);
+  post.addData("red", thisIsBaseR);
+  post.addData("blu", thisIsBaseB);
+  post.addData("yel", thisIsBaseY);
   post.send();
 }
 
 void regDraw(ArrayList<int[]> looper){
  tempG.beginDraw();
     tempG.clear();
-
+    tempG.noStroke();
     for (int i =0; i<looper.size(); i++) {
 
       int[] cur = looper.get(i);
