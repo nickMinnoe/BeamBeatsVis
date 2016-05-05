@@ -56,7 +56,7 @@ boolean saveP = true;
 PGraphics tempG;
 
 void setup() {
-  //fullScreen(); //TODO: uncomment me
+  fullScreen();
   MidiBus.list();
   start = millis();
   myBus = new MidiBus(this, midiDevice, 1);
