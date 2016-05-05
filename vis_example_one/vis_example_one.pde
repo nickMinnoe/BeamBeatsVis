@@ -27,13 +27,55 @@ int backColor = 0;
 int midiDevice  = 0;
 int fCounter;
 
+//channel to color mappings
+final int purChannel = 0;
+final int redChannel = 1;
+final int bluChannel = 2;
+final int yelChannel = 3;
+
 // lists of stuff
 ArrayList<int[]> playing;
 ArrayList<int[]> allMidi;
+
 ArrayList<int[]> redMidi;
 ArrayList<int[]> yelMidi;
 ArrayList<int[]> bluMidi;
 ArrayList<int[]> purMidi;
+
+
+public class Bend
+{
+	int channel;
+	int note;
+	float bend;
+	int time;
+
+	public Bend(int _channel, int _note, float _bend)
+  {
+    channel = _channel;
+    note = _note;
+    bend = _bend;
+    time = millis();
+  }
+
+  public int to_color()
+  {
+    int alpha = note_to_alpha(note);
+
+    switch(channel)
+    {
+      case purChannel: return color(307, 76, 60, alpha);
+      case redChannel: return color(352, 83, 92, alpha);
+      case bluChannel: return color(190, 100, 83, alpha);
+      case yelChannel: return color(40, 91, 98, alpha);
+      default: return color(0,0,0,0); //transparent
+    }
+  }
+}
+
+ArrayList<Bend> bends = new ArrayList<Bend>();
+
+Boolean[][] noteStatuses = new Boolean[16][12]; // [channel][note] (MIDI has max of 16 channels)
 
 // drawing vars
 float dis;
@@ -118,7 +160,7 @@ void draw() {
   } else if(millis() - start >= playLength+(interval*4)) {
     //save purple
     
-    regDraw(purMidi);
+    regDraw(purMidi, purChannel);
     if (saveP) {
       saveP = false;
       saveNSend("pur");
@@ -128,7 +170,7 @@ void draw() {
   } else if (millis() - start >= playLength+(interval*3)) {
     // save red
     
-    regDraw(redMidi);
+    regDraw(redMidi, redChannel);
     if (saveR) {
       saveR = false;
       saveNSend("red");
@@ -136,7 +178,7 @@ void draw() {
   } else if (millis() - start >= playLength+(interval*2)) {
     // save yellow 
     
-    regDraw(yelMidi);
+    regDraw(yelMidi, yelChannel);
     if (saveY) {
       saveY = false;
       saveNSend("yel");
@@ -144,7 +186,7 @@ void draw() {
   } else if (millis() - start >= playLength+interval) {
     // save blue 
     
-    regDraw(bluMidi);
+    regDraw(bluMidi, bluChannel);
     if (saveB) {
       saveB = false;
       saveNSend("blu");
@@ -152,13 +194,27 @@ void draw() {
   } else if (millis() - start >= playLength) {
     // save all midi 
     
-    regDraw(allMidi);
+    regDraw(allMidi, -1);
     if (saveA) {
       saveA = false;
       saveNSend("all");
     }
   } else {
     // normal playing
+
+  //draw pitch bend dots
+  for(Bend bend : bends)
+  {
+    a = bend.time * angleInc;
+    int x = floor(width/2 + (dis * cos(radians(a))));
+    int y = floor(height/2 + (dis * sin(radians(a))));
+    pushMatrix();
+    translate(x, y);
+    rotate(radians(a));
+    fill(bend.to_color());
+    int wobble = floor(map(bend.bend, 0, 1, 0, 5));
+    rect(0, wobble, 2, 2);
+  }
 
   for (int i =0; i<allMidi.size(); i++) {
 
@@ -270,12 +326,18 @@ void draw() {
     } //
     popMatrix();
   }
-  }
+  } //end if for normal playing
+}
+
+int note_to_alpha(int note)
+{
+	return (100 - note*7);
 }
 
 // TheMididBus method, triggers when noteOn recieved
 // add to playing array and parse data
-void noteOn(int channel, int noteNum, int vel) { 
+void noteOn(int channel, int noteNum, int vel) {
+
   if(millis() - start <= playLength){
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
@@ -284,7 +346,8 @@ void noteOn(int channel, int noteNum, int vel) {
   int hue = 0;
   int saturation = 0;
   int brightness = 0;
-  int alpha = 100 - note*7;
+  int alpha = note_to_alpha(note);
+	noteStatuses[channel][note] = true;
   // CHANNEL CHANGE switch comparisons
   if (channel==0) {
     hue = 307;
@@ -314,6 +377,9 @@ void noteOn(int channel, int noteNum, int vel) {
 void noteOff(int channel, int noteNum, int vel) {
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
+
+ 	noteStatuses[channel][note] = false;
+
   //CHANNEL CHANGE - switch octave/channel in array
   int[] temp = {channel, note, octave};
   for (int i=0; i<playing.size(); i++) {
@@ -341,6 +407,16 @@ void noteOff(int channel, int noteNum, int vel) {
 void channelBend(int channel, float bend)
 {
   println("Pitch " + bend);
+
+  //lookup what notes are active
+  for(int note = 0; note < noteStatuses[0].length; note++)
+  {
+  	//if this note on this channel is being played
+  	if(noteStatuses[channel][note])
+  	{
+  		bends.add(new Bend(channel, note, bend));
+  	}
+  }
 }
 
 void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMessage message, long timestamp, String bus_name)
@@ -409,10 +485,27 @@ void saveNSend(String imgName) {
   //cc.send(thisIsBase);
 }
 
-void regDraw(ArrayList<int[]> looper){
- tempG.beginDraw();
+//pass -1 for channel to draw all channels
+void regDraw(ArrayList<int[]> looper, int channel){
+    tempG.beginDraw();
     tempG.clear();
 
+    //draw pitch bend dots
+    for(Bend bend : bends)
+    {
+      if(bend.channel == channel || channel == -1)
+      a = bend.time * angleInc;
+      int x = floor(width/2 + (dis * cos(radians(a))));
+      int y = floor(height/2 + (dis * sin(radians(a))));
+      pushMatrix();
+      translate(x, y);
+      rotate(radians(a));
+      fill(bend.to_color());
+      int wobble = floor(map(bend.bend, 0, 1, 0, 5));
+      rect(0, wobble, 2, 2);
+    }
+
+    //draw the notes
     for (int i =0; i<looper.size(); i++) {
 
       int[] cur = looper.get(i);
