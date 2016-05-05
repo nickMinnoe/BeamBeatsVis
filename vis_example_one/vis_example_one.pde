@@ -10,7 +10,7 @@ import javax.xml.bind.DatatypeConverter;
 MidiBus myBus; 
 
 // uri to connect to
-String defaultLoc = "http://requestb.in/1f71cln1";
+String defaultLoc = "http://beambeats.cias.rit.edu/visualization/acceptVis.php";
 
 int backColor = 0;
 int midiDevice  = 0;
@@ -31,12 +31,14 @@ int difT;
 float finalPos;
 float a;
 float angleInc = .006;
-int velPivot = 85;
+int velPivot = 0;
 
 // all for timing and saving/sending data to server
 int start;
-int playLength = 30000;
+int playLength = 62000;
 int interval = 1200;
+int introTime = 3000;
+
 boolean saveA = true;
 boolean saveR = true;
 boolean saveY = true;
@@ -58,7 +60,7 @@ void setup() {
   colorMode(HSB, 360, 100, 100, 100);
   rectMode(CENTER);
   noStroke();
-  tempG = createGraphics(width, height, JAVA2D);
+  tempG = createGraphics(768, 768, JAVA2D);
   tempG.noStroke();
   fCounter = 0;
 }
@@ -94,7 +96,7 @@ void draw() {
   String fileNameP = sketchPath("pur.png");
   File fileP = sketchFile(fileNameP);
   System.gc(); // the key to succes
-  //file.delete();
+  file.delete();
   fileR.delete();
   fileB.delete();
   fileY.delete();
@@ -141,13 +143,13 @@ void draw() {
       saveA = false;
       saveToFile("all");
     }
-  } else {
+  } else if(millis() - start >= introTime){
     // normal playing
 
   for (int i =0; i<allMidi.size(); i++) {
 
     int[] cur = allMidi.get(i);
-    a = cur[4] * angleInc;
+    a = (cur[4]-start) * angleInc;
     finalPos = 25*(cur[1] + 1)+65;
     difT = millis() - cur[4];
 
@@ -214,7 +216,7 @@ void draw() {
     }
 
     // calculate angle around circle
-    a = cur[4] * angleInc;
+    a = (cur[4]-start) * angleInc;
     int x = floor(width/2 + (dis * cos(radians(a))));
     int y = floor(height/2 + (dis * sin(radians(a))));
     // transformations done to accurately rotate squares
@@ -254,6 +256,9 @@ void draw() {
     } //
     popMatrix();
   }
+  } else{
+     // do a countdown
+     //reset start time
   }
 }
 
@@ -307,13 +312,13 @@ void noteOff(int channel, int noteNum, int vel) {
       allMidi.add(finished);
       playing.remove(i);
       
-      if(cur[0]==2){
+      if(cur[0]==1){
         redMidi.add(finished);
-      }else if(cur[0]==3){
+      }else if(cur[0]==2){
         bluMidi.add(finished);
-      }else if(cur[0]==4){
+      }else if(cur[0]==3){
         yelMidi.add(finished);
-      }else if(cur[0]==5){
+      }else if(cur[0]==4){
         purMidi.add(finished);
       }
     }
@@ -356,13 +361,14 @@ void regDraw(ArrayList<int[]> looper){
  tempG.beginDraw();
     tempG.clear();
     tempG.noStroke();
+    tempG.rectMode(CENTER);
     for (int i =0; i<looper.size(); i++) {
 
       int[] cur = looper.get(i);
-      a = cur[4] * angleInc;
+      a = (cur[4]-start) * angleInc;
       finalPos = 25*(cur[1] + 1)+65;
       dis = finalPos;
-      int x = floor(width/2 + (dis * cos(radians(a))));
+      int x = floor(tempG.width/2 + (dis * cos(radians(a))));
       int y = floor(height/2 + (dis * sin(radians(a))));
       int duration = floor(sqrt((cur[9])/25));
       tempG.pushMatrix();
@@ -395,5 +401,5 @@ void regDraw(ArrayList<int[]> looper){
       
     tempG.endDraw();
     
-    image(tempG, 0, 0);
+    image(tempG, (width/2)-(height/2), 0);
 }
