@@ -56,7 +56,7 @@ boolean saveP = true;
 PGraphics tempG;
 
 void setup() {
-  fullScreen();
+  //fullScreen(); //TODO: uncomment me
   MidiBus.list();
   start = millis();
   myBus = new MidiBus(this, midiDevice, 1);
@@ -336,6 +336,30 @@ void noteOff(int channel, int noteNum, int vel) {
     }
   }
 }
+
+//bend goes from -1.0 to 1.0
+void channelBend(int channel, float bend)
+{
+  println("Pitch " + bend);
+}
+
+void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMessage message, long timestamp, String bus_name)
+  //check if it's a pitch bend message
+  if(message.getStatus() >> 4 == 14)
+  {
+    int channel = message.getStatus() & 0x0F;
+    int value = message.getMessage()[1] & 0xFF; //7 LSB
+    value = value | (message.getMessage()[2] << 7); //7 MSB
+    float bend = map(value, 0, 16384, -1, 1); //magic maximum numbers from MIDI spec
+    
+    //only report bends of significance
+    if(abs(bend) > 0.05)
+    {
+      channelBend(channel, bend);
+    }
+  }
+}
+
 
 // DELETE THIS SHIT replace with nothing
 void setupCC() {
