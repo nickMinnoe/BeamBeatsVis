@@ -353,7 +353,7 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
     float bend = map(value, 0, 16384, -1, 1); //magic maximum numbers from MIDI spec
     
     //only report bends of significance
-    if(abs(bend) > 0.05)
+    if(abs(bend) > 0.005)
     {
       channelBend(channel, bend);
     }
