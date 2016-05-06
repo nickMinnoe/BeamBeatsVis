@@ -368,19 +368,19 @@ void noteOn(int channel, int noteNum, int vel) {
   int alpha = note_to_alpha(note);
   noteStatuses[channel][note] = true;
   // CHANNEL CHANGE switch comparisons
-  if (channel==0) {
+  if (channel==purChannel) {
     hue = 307;
     saturation = 76;
     brightness = 60;
-  } else if (channel==1) {
+  } else if (channel==redChannel) {
     hue = 352;
     saturation = 83;
     brightness = 92;
-  } else if (channel==2) {
+  } else if (channel==bluChannel) {
     hue = 190;
     saturation = 100;
     brightness = 83;
-  } else if (channel==3) {
+  } else if (channel==yelChannel) {
     hue = 40;
     saturation = 91;
     brightness = 98;
@@ -517,16 +517,15 @@ void regDraw(ArrayList<int[]> looper, int channel){
         dis = note_to_radius(bend.note);
         int x = floor(width/2 + (dis * cos(radians(a))));
         int y = floor(height/2 + (dis * sin(radians(a))));
-        pushMatrix();
-        translate(x, y);
-        rotate(radians(a));
-        fill(bend.to_color());
+        tempG.pushMatrix();
+        tempG.translate(x, y);
+        tempG.rotate(radians(a));
+        tempG.fill(bend.to_color());
         int wobble = floor(map(bend.bend, 0, 0.08, 0, 3));
-        rect(wobble, 0, 2, 2);
-        popMatrix();
+        tempG.rect(wobble, 0, 2, 2);
+        tempG.popMatrix();
       }
     }
-
 
     //draw the notes
     for (int i =0; i<looper.size(); i++) {
