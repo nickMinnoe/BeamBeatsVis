@@ -134,6 +134,17 @@ void draw() {
     purMidi.clear();
     yelMidi.clear();
     playing.clear();
+    bends.clear();
+
+    //wipe the 2D array of [channel][note] statuses
+    for(int c = 0; c < noteStatuses.length; c++)
+    {
+      for(int n = 0; n < noteStatuses[c].length; n++)
+      {
+        noteStatuses[c][n] = false;
+      }
+    }
+
     start = millis();
     saveA = true;
     saveY = true;
@@ -497,19 +508,25 @@ void regDraw(ArrayList<int[]> looper, int channel){
     tempG.clear();
 
     //draw pitch bend dots
-    for(Bend bend : bends)
+    for(int i = 0; i < bends.size(); i++)
     {
+      Bend bend = bends.get(i);
       if(bend.channel == channel || channel == -1)
-      a = bend.time * angleInc;
-      int x = floor(width/2 + (dis * cos(radians(a))));
-      int y = floor(height/2 + (dis * sin(radians(a))));
-      pushMatrix();
-      translate(x, y);
-      rotate(radians(a));
-      fill(bend.to_color());
-      int wobble = floor(map(bend.bend, 0, 1, 0, 5));
-      rect(0, wobble, 2, 2);
+      {
+        a = bend.time * angleInc;
+        dis = note_to_radius(bend.note);
+        int x = floor(width/2 + (dis * cos(radians(a))));
+        int y = floor(height/2 + (dis * sin(radians(a))));
+        pushMatrix();
+        translate(x, y);
+        rotate(radians(a));
+        fill(bend.to_color());
+        int wobble = floor(map(bend.bend, 0, 0.08, 0, 3));
+        rect(wobble, 0, 2, 2);
+        popMatrix();
+      }
     }
+
 
     //draw the notes
     for (int i =0; i<looper.size(); i++) {
