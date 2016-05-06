@@ -61,6 +61,7 @@ public class Bend
   public int to_color()
   {
     int alpha = note_to_alpha(note);
+    alpha /= 2;
 
     switch(channel)
     {
@@ -213,8 +214,8 @@ void draw() {
     translate(x, y);
     rotate(radians(a));
     fill(bend.to_color());
-    int wobble = floor(map(bend.bend, 0, 1, 0, 5));
-    rect(0, wobble, 2, 2);
+    int wobble = floor(map(bend.bend, 0, 0.08, 0, 3));
+    rect(wobble, 0, 2, 2);
     popMatrix();
   }
 
@@ -434,7 +435,7 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
     float bend = map(value, 0, 16384, -1, 1); //magic maximum numbers from MIDI spec
     
     //only report bends of significance
-    if(abs(bend) > 0.005)
+    if(abs(bend) > 0.001)
     {
       channelBend(channel, bend);
     }
