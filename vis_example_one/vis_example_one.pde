@@ -35,9 +35,10 @@ int velPivot = 0;
 
 // all for timing and saving/sending data to server
 int start;
-int playLength = 62000;
-int interval = 1200;
-int introTime = 3000;
+int playLength = 60000;
+int interval = 1500;
+int introTime = 4300;
+int whiteA = 0;
 
 boolean saveA = true;
 boolean saveR = true;
@@ -63,6 +64,8 @@ void setup() {
   tempG = createGraphics(768, 768, JAVA2D);
   tempG.noStroke();
   fCounter = 0;
+  textAlign(CENTER);
+  textSize(48);
 }
 
 void draw() {
@@ -70,7 +73,7 @@ void draw() {
   background(backColor);
 
   // -----   End show conditions
-  if(millis() - start >= playLength+(interval*5)){
+  if(millis() - start >= playLength+(interval*5)+(introTime*1.7)){
     //reset the system
     allMidi.clear();
     redMidi.clear();
@@ -101,17 +104,17 @@ void draw() {
   fileB.delete();
   fileY.delete();
   fileP.delete();
-  } else if(millis() - start >= playLength+(interval*4)) {
+  } else if(millis() - start >= playLength+(interval*4)+(introTime*1.7)) {
     //save purple
     
     regDraw(purMidi);
     if (saveP) {
       saveP = false;
-      saveNSend("pur");
+      // saveNSend("pur");
     }
     
     //saveP = true;
-  } else if (millis() - start >= playLength+(interval*3)) {
+  } else if (millis() - start >= playLength+(interval*3)+(introTime*1.7)) {
     // save red
     
     regDraw(redMidi);
@@ -119,7 +122,7 @@ void draw() {
       saveR = false;
       saveToFile("red");
     }
-  } else if (millis() - start >= playLength+(interval*2)) {
+  } else if (millis() - start >= playLength+(interval*2)+(introTime*1.7)) {
     // save yellow 
     
     regDraw(yelMidi);
@@ -127,7 +130,7 @@ void draw() {
       saveY = false;
       saveToFile("yel");
     }
-  } else if (millis() - start >= playLength+interval) {
+  } else if (millis() - start >= playLength+interval+(introTime*1.7)) {
     // save blue 
     
     regDraw(bluMidi);
@@ -135,9 +138,9 @@ void draw() {
       saveB = false;
       saveToFile("blu");
     }
-  } else if (millis() - start >= playLength) {
+  } else if (millis() - start >= playLength+(introTime*1.5)) {
     // save all midi 
-    
+    println("In all midi");
     regDraw(allMidi);
     if (saveA) {
       saveA = false;
@@ -149,7 +152,7 @@ void draw() {
   for (int i =0; i<allMidi.size(); i++) {
 
     int[] cur = allMidi.get(i);
-    a = (cur[4]-start) * angleInc;
+    a = (cur[4]-(start+introTime)) * angleInc;
     finalPos = 25*(cur[1] + 1)+65;
     difT = millis() - cur[4];
 
@@ -216,7 +219,7 @@ void draw() {
     }
 
     // calculate angle around circle
-    a = (cur[4]-start) * angleInc;
+    a = (cur[4]-(start+introTime)) * angleInc;
     int x = floor(width/2 + (dis * cos(radians(a))));
     int y = floor(height/2 + (dis * sin(radians(a))));
     // transformations done to accurately rotate squares
@@ -256,16 +259,33 @@ void draw() {
     } //
     popMatrix();
   }
+  if(millis() - start >= playLength+introTime){
+      println("In hur");
+      whiteA += 4;
+      if(whiteA >= 65) whiteA=65;
+      fill(255, whiteA);
+      rect(width/2,height/2,width,height);
+      fill(0);
+      text("Done!", width/2, height/2); 
+      text("Here's what you made", width/2, height/2+60);
+    }
   } else{
      // do a countdown
-     //reset start time
+     // reset start time
+     fill(255);
+     if(millis()-start >= introTime - 400){
+       text("PLAY!", width/2, height/2);
+     } else{
+       text("Get ready to Rock!", width/2, height/2);
+       text((introTime-400-(millis()-start))/1000+1, width/2, height/2+60);
+     }
   }
 }
 
 // TheMididBus method, triggers when noteOn recieved
 // add to playing array and parse data
 void noteOn(int channel, int noteNum, int vel) { 
-  if(millis() - start <= playLength){
+  if(introTime <= millis()-start && millis()-start <= playLength+(introTime)){
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
   int tplayed = millis();
@@ -365,7 +385,7 @@ void regDraw(ArrayList<int[]> looper){
     for (int i =0; i<looper.size(); i++) {
 
       int[] cur = looper.get(i);
-      a = (cur[4]-start) * angleInc;
+      a = (cur[4]-(start+introTime+500)) * angleInc;
       finalPos = 25*(cur[1] + 1)+65;
       dis = finalPos;
       int x = floor(tempG.width/2 + (dis * cos(radians(a))));
