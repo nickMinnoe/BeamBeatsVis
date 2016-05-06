@@ -45,12 +45,12 @@ ArrayList<int[]> purMidi;
 
 public class Bend
 {
-	int channel;
-	int note;
-	float bend;
-	int time;
+  int channel;
+  int note;
+  float bend;
+  int time;
 
-	public Bend(int _channel, int _note, float _bend)
+  public Bend(int _channel, int _note, float _bend)
   {
     channel = _channel;
     note = _note;
@@ -75,7 +75,7 @@ public class Bend
 
 ArrayList<Bend> bends = new ArrayList<Bend>();
 
-Boolean[][] noteStatuses = new Boolean[16][12]; // [channel][note] (MIDI has max of 16 channels)
+boolean[][] noteStatuses = new boolean[16][12]; // [channel][note] (MIDI has max of 16 channels)
 
 // drawing vars
 float dis;
@@ -122,7 +122,6 @@ void setup() {
 }
 
 void draw() {
-
   background(backColor);
 
   // -----   End show conditions
@@ -203,9 +202,11 @@ void draw() {
     // normal playing
 
   //draw pitch bend dots
-  for(Bend bend : bends)
+  for(int i = 0; i < bends.size(); i++)
   {
+    Bend bend = bends.get(i);
     a = bend.time * angleInc;
+    dis = note_to_radius(bend.note);
     int x = floor(width/2 + (dis * cos(radians(a))));
     int y = floor(height/2 + (dis * sin(radians(a))));
     pushMatrix();
@@ -214,6 +215,7 @@ void draw() {
     fill(bend.to_color());
     int wobble = floor(map(bend.bend, 0, 1, 0, 5));
     rect(0, wobble, 2, 2);
+    popMatrix();
   }
 
   for (int i =0; i<allMidi.size(); i++) {
@@ -331,7 +333,12 @@ void draw() {
 
 int note_to_alpha(int note)
 {
-	return (100 - note*7);
+  return (100 - note*7);
+}
+
+int note_to_radius(int note)
+{
+  return (25*(note + 1)+65);
 }
 
 // TheMididBus method, triggers when noteOn recieved
@@ -347,7 +354,7 @@ void noteOn(int channel, int noteNum, int vel) {
   int saturation = 0;
   int brightness = 0;
   int alpha = note_to_alpha(note);
-	noteStatuses[channel][note] = true;
+  noteStatuses[channel][note] = true;
   // CHANNEL CHANGE switch comparisons
   if (channel==0) {
     hue = 307;
@@ -378,7 +385,7 @@ void noteOff(int channel, int noteNum, int vel) {
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
 
- 	noteStatuses[channel][note] = false;
+  noteStatuses[channel][note] = false;
 
   //CHANNEL CHANGE - switch octave/channel in array
   int[] temp = {channel, note, octave};
@@ -406,16 +413,14 @@ void noteOff(int channel, int noteNum, int vel) {
 //bend goes from -1.0 to 1.0
 void channelBend(int channel, float bend)
 {
-  println("Pitch " + bend);
-
   //lookup what notes are active
   for(int note = 0; note < noteStatuses[0].length; note++)
   {
-  	//if this note on this channel is being played
-  	if(noteStatuses[channel][note])
-  	{
-  		bends.add(new Bend(channel, note, bend));
-  	}
+    //if this note on this channel is being played
+    if(noteStatuses[channel][note])
+    {
+      bends.add(new Bend(channel, note, bend));
+    }
   }
 }
 
