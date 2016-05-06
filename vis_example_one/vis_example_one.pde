@@ -12,9 +12,9 @@ MidiBus myBus;
 // uri to connect to
 String defaultLoc = "http://beambeats.cias.rit.edu/visualization/acceptVis.php";
 
-int backColor = 0;
+int backColor = 34;
 int midiDevice  = 0;
-int fCounter;
+boolean clicked = false;
 
 // lists of stuff
 ArrayList<int[]> playing;
@@ -63,9 +63,9 @@ void setup() {
   noStroke();
   tempG = createGraphics(768, 768, JAVA2D);
   tempG.noStroke();
-  fCounter = 0;
   textAlign(CENTER);
-  textSize(48);
+  PFont font = createFont("Neutra2Display-Titling.otf", 48);
+  textFont(font);
 }
 
 void draw() {
@@ -81,7 +81,8 @@ void draw() {
     purMidi.clear();
     yelMidi.clear();
     playing.clear();
-    start = millis();
+    //start = millis();
+    clicked = false;
     saveA = true;
     saveY = true;
     saveB = true;
@@ -104,7 +105,7 @@ void draw() {
   fileB.delete();
   fileY.delete();
   fileP.delete();
-  } else if(millis() - start >= playLength+(interval*4)+(introTime*1.7)) {
+  } else if(clicked&&millis() - start >= playLength+(interval*4)+(introTime*1.7)) {
     //save purple
     
     regDraw(purMidi);
@@ -114,7 +115,7 @@ void draw() {
     }
     
     //saveP = true;
-  } else if (millis() - start >= playLength+(interval*3)+(introTime*1.7)) {
+  } else if (clicked&&millis() - start >= playLength+(interval*3)+(introTime*1.7)) {
     // save red
     
     regDraw(redMidi);
@@ -122,7 +123,7 @@ void draw() {
       saveR = false;
       saveToFile("red");
     }
-  } else if (millis() - start >= playLength+(interval*2)+(introTime*1.7)) {
+  } else if (clicked&&millis() - start >= playLength+(interval*2)+(introTime*1.7)) {
     // save yellow 
     
     regDraw(yelMidi);
@@ -130,7 +131,7 @@ void draw() {
       saveY = false;
       saveToFile("yel");
     }
-  } else if (millis() - start >= playLength+interval+(introTime*1.7)) {
+  } else if (clicked&&millis() - start >= playLength+interval+(introTime*1.7)) {
     // save blue 
     
     regDraw(bluMidi);
@@ -138,15 +139,14 @@ void draw() {
       saveB = false;
       saveToFile("blu");
     }
-  } else if (millis() - start >= playLength+(introTime*1.5)) {
+  } else if (clicked&&millis() - start >= playLength+(introTime*1.5)) {
     // save all midi 
-    println("In all midi");
     regDraw(allMidi);
     if (saveA) {
       saveA = false;
       saveToFile("all");
     }
-  } else if(millis() - start >= introTime){
+  } else if(clicked&&millis() - start >= introTime){
     // normal playing
 
   for (int i =0; i<allMidi.size(); i++) {
@@ -269,22 +269,27 @@ void draw() {
       text("Done!", width/2, height/2); 
       text("Here's what you made", width/2, height/2+60);
     }
-  } else{
-     // do a countdown
-     // reset start time
-     fill(255);
+  } else if(clicked){
+    fill(255);
      if(millis()-start >= introTime - 400){
        text("PLAY!", width/2, height/2);
      } else{
        text("Get ready to Rock!", width/2, height/2);
        text((introTime-400-(millis()-start))/1000+1, width/2, height/2+60);
      }
+  } else{
+     // waiting
+       text("Get ready to Rock!", width/2, height/2);
+       start = millis();
   }
 }
 
 // TheMididBus method, triggers when noteOn recieved
 // add to playing array and parse data
-void noteOn(int channel, int noteNum, int vel) { 
+void noteOn(int channel, int noteNum, int vel) {
+  if(!clicked){
+    clicked = true;
+  } else{
   if(introTime <= millis()-start && millis()-start <= playLength+(introTime)){
   int octave = (noteNum/12) -1;
   int note = noteNum%12;
@@ -315,6 +320,7 @@ void noteOn(int channel, int noteNum, int vel) {
   int[] temp = {octave, note, channel, vel, tplayed, hue, saturation, brightness, alpha};
   playing.add(temp);
 }
+  }
 }
 
 // TheMididBus method, triggers when noteOn recieved
