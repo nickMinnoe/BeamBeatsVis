@@ -437,7 +437,7 @@ void noteOff(int channel, int noteNum, int vel) {
         bluMidi.add(finished);
       }else if(cur[0]==3){
         yelMidi.add(finished);
-      }else if(cur[0]==4){
+      }else if(cur[0]==0){
         purMidi.add(finished);
       }
     }
