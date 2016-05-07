@@ -362,7 +362,7 @@ int note_to_alpha(int note)
 
 int note_to_radius(int note)
 {
-  return 20*(cur[1] + 1)+55;
+  return 20*(note + 1)+55;
 }
 
 // TheMididBus method, triggers when noteOn recieved
