@@ -206,7 +206,7 @@ void draw() {
   for(int i = 0; i < bends.size(); i++)
   {
     Bend bend = bends.get(i);
-    a = bend.time * angleInc;
+    a = (bend.time - (start+introTime)) * angleInc;
     dis = note_to_radius(bend.note);
     int x = floor(width/2 + (dis * cos(radians(a))));
     int y = floor(height/2 + (dis * sin(radians(a))));
@@ -515,7 +515,7 @@ void regDraw(ArrayList<int[]> looper, int channel){
       {
         a = bend.time * angleInc;
         dis = note_to_radius(bend.note);
-        int x = floor(width/2 + (dis * cos(radians(a))));
+        int x = floor(tempG.width/2 + (dis * cos(radians(a))));
         int y = floor(height/2 + (dis * sin(radians(a))));
         tempG.pushMatrix();
         tempG.translate(x, y);
