@@ -47,6 +47,9 @@ boolean saveB = true;
 boolean saveP = true;
 PGraphics tempG;
 
+PFont font;
+PFont fontSmall;
+
 void setup() {
   fullScreen();
   MidiBus.list();
@@ -64,8 +67,9 @@ void setup() {
   tempG = createGraphics(768, 768, JAVA2D);
   tempG.noStroke();
   textAlign(CENTER);
-  PFont font = createFont("Neutra2Display-Titling.otf", 48);
-  textFont(font);
+  font = createFont("Neutra2Display-Titling.otf", 48);
+  fontSmall = createFont("Neutra2Display-Titling.otf", 32);
+  
 }
 
 void draw() {
@@ -75,6 +79,7 @@ void draw() {
   // -----   End show conditions
   if(millis() - start >= playLength+(interval*5)+(introTime*1.7)){
     //reset the system
+    sendToServer();
     allMidi.clear();
     redMidi.clear();
     bluMidi.clear();
@@ -111,7 +116,7 @@ void draw() {
     regDraw(purMidi);
     if (saveP) {
       saveP = false;
-      saveNSend("pur");
+      saveToFile("pur");
     }
     
     //saveP = true;
@@ -270,6 +275,7 @@ void draw() {
     }
   } else if(clicked){
     fill(255);
+    textFont(font);
      if(millis()-start >= introTime - 400){
        text("PLAY!", width/2, height/2);
      } else{
@@ -278,9 +284,11 @@ void draw() {
      }
   } else{
      // waiting
-     println("back in black");
        fill(255);
+       textFont(font);
        text("Get ready to Rock!", width/2, height/2);
+       textFont(fontSmall);
+       text("Play a note to begin", width/2, height/2+60);
        start = millis();
   }
 }
@@ -317,9 +325,10 @@ void noteOn(int channel, int noteNum, int vel) {
     saturation = 76;
     brightness = 60;
   }
-
-  int[] temp = {octave, note, channel, vel, tplayed, hue, saturation, brightness, alpha};
-  playing.add(temp);
+  if(octave == 1 || octave == 2 || octave == 3 || octave == 4){
+    int[] temp = {octave, note, channel, vel, tplayed, hue, saturation, brightness, alpha};
+    playing.add(temp);
+  }
 }
   }
 }
@@ -353,15 +362,11 @@ void noteOff(int channel, int noteNum, int vel) {
 }
 void saveToFile(String imgName){
   tempG.save(imgName+".png");
-  
 }
 
 // replacing mouseClicked
-void saveNSend(String imgName) {
+void sendToServer() {
   //change this line to save from a passed in object
-  print("In here");
-  tempG.save(imgName+".png");
-  delay(1000);
 
   byte[] imageBytesP = loadBytes("pur.png");
   String thisIsBaseP = DatatypeConverter.printBase64Binary(imageBytesP);
