@@ -337,7 +337,8 @@ void draw() {
       fill(0);
       text("Done!", width/2, height/2); 
       text("Here's what you made", width/2, height/2+60);
-  } else if(clicked){
+  } 
+}else if(clicked){
     fill(255);
      if(millis()-start >= introTime - 400){
        text("PLAY!", width/2, height/2);
@@ -352,7 +353,6 @@ void draw() {
        text("Get ready to Rock!", width/2, height/2);
        start = millis();
   } //end if for normal playing
-}
 }
 
 int note_to_alpha(int note)
