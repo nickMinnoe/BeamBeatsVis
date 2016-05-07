@@ -81,7 +81,7 @@ void draw() {
     purMidi.clear();
     yelMidi.clear();
     playing.clear();
-    //start = millis();
+    start = millis();
     clicked = false;
     saveA = true;
     saveY = true;
@@ -111,7 +111,7 @@ void draw() {
     regDraw(purMidi);
     if (saveP) {
       saveP = false;
-      // saveNSend("pur");
+      saveNSend("pur");
     }
     
     //saveP = true;
@@ -153,7 +153,7 @@ void draw() {
 
     int[] cur = allMidi.get(i);
     a = (cur[4]-(start+introTime)) * angleInc;
-    finalPos = 25*(cur[1] + 1)+65;
+    finalPos = 20*(cur[1] + 1)+55;
     difT = millis() - cur[4];
 
     if (difT >= 500) {
@@ -207,7 +207,7 @@ void draw() {
 
     int[] cur = playing.get(i);
     //used for size calculation
-    finalPos = 25*(cur[1] + 1)+65;
+    finalPos = 20*(cur[1] + 1)+55;
     difT = millis() - cur[4];
     int duration = floor(sqrt((difT)/25));
     if (difT >= 500) {
@@ -260,7 +260,6 @@ void draw() {
     popMatrix();
   }
   if(millis() - start >= playLength+introTime){
-      println("In hur");
       whiteA += 4;
       if(whiteA >= 65) whiteA=65;
       fill(255, whiteA);
@@ -279,6 +278,8 @@ void draw() {
      }
   } else{
      // waiting
+     println("back in black");
+       fill(255);
        text("Get ready to Rock!", width/2, height/2);
        start = millis();
   }
@@ -392,7 +393,7 @@ void regDraw(ArrayList<int[]> looper){
 
       int[] cur = looper.get(i);
       a = (cur[4]-(start+introTime+500)) * angleInc;
-      finalPos = 25*(cur[1] + 1)+65;
+      finalPos = 20*(cur[1] + 1)+55;
       dis = finalPos;
       int x = floor(tempG.width/2 + (dis * cos(radians(a))));
       int y = floor(height/2 + (dis * sin(radians(a))));
