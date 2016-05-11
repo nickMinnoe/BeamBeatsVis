@@ -90,6 +90,9 @@ boolean saveB = true;
 boolean saveP = true;
 PGraphics tempG;
 
+PFont font;
+PFont fontSmall;
+
 void setup() {
   fullScreen();
   MidiBus.list();
@@ -107,8 +110,8 @@ void setup() {
   tempG = createGraphics(768, 768, JAVA2D);
   tempG.noStroke();
   textAlign(CENTER);
-  PFont font = createFont("Neutra2Display-Titling.otf", 48);
-  textFont(font);
+  font = createFont("Neutra2Display-Titling.otf", 48);
+  fontSmall = createFont("Neutra2Display-Titling.otf", 32);
 }
 
 void draw() {
@@ -117,6 +120,7 @@ void draw() {
   // -----   End show conditions
   if(millis() - start >= playLength+(interval*5)+(introTime*1.7)){
     //reset the system
+    sendToServer();
     allMidi.clear();
     redMidi.clear();
     bluMidi.clear();
@@ -164,7 +168,7 @@ void draw() {
     regDraw(purMidi, purChannel);
     if (saveP) {
       saveP = false;
-      saveNSend("pur");
+      saveToFile("pur");
     }
     
     //saveP = true;
@@ -340,6 +344,7 @@ void draw() {
   } 
 }else if(clicked){
     fill(255);
+    textFont(font);
      if(millis()-start >= introTime - 400){
        text("PLAY!", width/2, height/2);
      } else{
@@ -348,9 +353,11 @@ void draw() {
      }
   } else{
      // waiting
-     println("back in black");
        fill(255);
+       textFont(font);
        text("Get ready to Rock!", width/2, height/2);
+       textFont(fontSmall);
+       text("Play a note to begin.", width/2, height/2+60);
        start = millis();
   } //end if for normal playing
 }
@@ -430,7 +437,7 @@ void noteOff(int channel, int noteNum, int vel) {
         bluMidi.add(finished);
       }else if(cur[0]==3){
         yelMidi.add(finished);
-      }else if(cur[0]==4){
+      }else if(cur[0]==0){
         purMidi.add(finished);
       }
     }
@@ -473,11 +480,8 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
 }
 
 // replacing mouseClicked
-void saveNSend(String imgName) {
+void sendToServer() {
   //change this line to save from a passed in object
-  print("In here");
-  tempG.save(imgName+".png");
-  delay(1000);
 
   byte[] imageBytesP = loadBytes("pur.png");
   String thisIsBaseP = DatatypeConverter.printBase64Binary(imageBytesP);
