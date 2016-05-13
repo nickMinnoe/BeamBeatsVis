@@ -12,11 +12,11 @@ The .pde is the processing(3) file. The other file is just a font for our brandi
 
 ##Setting it up
 
-1) For some reason I couldn't get the midibus library to work unless you used Processing 3 32bit. I couldn't receive any midi data on the 64bit version.
-2) In the processing sketch go to the Sketch drop down, Import Library and install "The Midibus"(for receiving music notes) and "HTTP request for processing" (for sending data to the server)
-3) Run the code once. This will provide a list of available midi-connections. Change the "midiDevice" var to match the index of that device.
-4) This is set up to send the visualizations to a server. change the value of the "defaultLoc" variable to be the location that will accept them.
-5) Run the code, should be working now. This is set up to run for one minute, change the playLength" var to change the time, and angleInc (360/playLength).
+1. For some reason I couldn't get the midibus library to work unless you used Processing 3 32bit. I couldn't receive any midi data on the 64bit version.
+2. In the processing sketch go to the Sketch drop down, Import Library and install "The Midibus"(for receiving music notes) and "HTTP request for processing" (for sending data to the server)
+3. Run the code once. This will provide a list of available midi-connections. Change the "midiDevice" var to match the index of that device.
+4. This is set up to send the visualizations to a server. change the value of the "defaultLoc" variable to be the location that will accept them.
+5. Run the code, should be working now. This is set up to run for one minute, change the playLength" var to change the time, and angleInc (360/playLength).
 
 ##Weird things to look out for
 
