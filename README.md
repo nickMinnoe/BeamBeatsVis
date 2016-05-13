@@ -32,4 +32,4 @@ The other option allows you to test on your computer without an actual input dev
   
   __Midi-yoke__: This piece of software allows you to make internal connections. With this you can send the keyboard data from midi-ox through a midi-yoke port, then accept the port as input for processing. This can be found on the same page as midi-ox.
 
-[__Request bin__](requestb.in): This can be used for test data sent to the server. This will make a very simple page capable of accepting the post requests you send and displaying the data you sent.
+[__Request bin__](http://requestb.in): This can be used for test data sent to the server. This will make a very simple page capable of accepting the post requests you send and displaying the data you sent.
